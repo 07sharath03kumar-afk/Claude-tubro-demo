@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#f6f8fb; --ink:#16202e; --muted:#6b7686;
+  --line:#e2e7ef; --accent:#3b5bdb; --accent-soft:#e7ecff; --ok:#12a37f; --danger:#d6455d;
+  --high:#d6455d; --med:#e08a00; --low:#12a37f;
+  --shadow:0 1px 2px rgba(22,32,46,.06),0 12px 32px -12px rgba(22,32,46,.18);
+  --radius:18px;
+}
+:root[data-theme="dark"]{
+  --bg:#0e131b; --surface:#161d28; --surface-2:#1c2431; --ink:#e8edf5; --muted:#8b97a9;
+  --line:#263042; --accent:#7b93ff; --accent-soft:#232d52; --ok:#2dd4a7; --danger:#ff6b81;
+  --high:#ff6b81; --med:#f5a524; --low:#2dd4a7;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px -14px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg)}
+body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;
+  padding:clamp(16px,4vw,56px) 16px;transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+.app{max-width:760px;margin:0 auto;display:grid;gap:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{font-size:clamp(28px,5vw,38px);font-weight:800;letter-spacing:-.03em}
+.date{color:var(--muted);font-size:14px;margin-top:4px;font-weight:500}
+.icon-btn{width:42px;height:42px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow);transition:transform .15s}
+.icon-btn:hover{transform:translateY(-1px)}
+.icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* progress */
+.progress{display:flex;align-items:center;gap:20px;padding:22px 24px}
+.ring{--p:0;width:84px;height:84px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);transition:background .4s}
+.ring span{width:66px;height:66px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-.02em}
+.progress h2{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.progress p{color:var(--muted);font-size:14px;margin-top:4px}
+.stats{margin-left:auto;display:flex;gap:22px}
+.stat b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.stat small{color:var(--muted);font-size:12.5px;font-weight:500}
+
+/* add form */
+.add{padding:14px;display:grid;gap:12px}
+.add-row{display:flex;gap:10px}
+.add input[type=text]{flex:1;min-width:0;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);font-size:16px;transition:border .2s,background .2s}
+.add input[type=text]:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.btn-primary{padding:0 22px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;transition:transform .15s,filter .15s}
+:root[data-theme="dark"] .btn-primary{color:#0e131b}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.97)}
+.opts{display:flex;gap:10px;flex-wrap:wrap}
+.opts select,.opts input[type=date]{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:14px;color:var(--muted);font-weight:500}
+.opts select:focus,.opts input:focus{outline:none;border-color:var(--accent)}
+
+/* toolbar */
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+.tab{padding:8px 16px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted);transition:background .2s,color .2s}
+.tab[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+.search{flex:1;min-width:140px;position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
+.search input{width:100%;padding:11px 14px 11px 36px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:14px}
+.search input:focus{outline:none;border-color:var(--accent)}
+
+/* list */
+ul{list-style:none;padding:0;display:grid;gap:10px}
+.task{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;border-left:4px solid var(--p-color,var(--line));transition:box-shadow .2s,opacity .25s}
+.task:hover{box-shadow:var(--shadow)}
+.task.new{animation:pop .35s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+.task[data-p=high]{--p-color:var(--high)} .task[data-p=medium]{--p-color:var(--med)} .task[data-p=low]{--p-color:var(--low)}
+.check{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);flex:none;display:grid;place-items:center;transition:all .2s}
+.check svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:22;stroke-dashoffset:22;transition:stroke-dashoffset .25s}
+.check:hover{border-color:var(--accent)}
+.task.done .check{background:var(--ok);border-color:var(--ok)}
+.task.done .check svg{stroke-dashoffset:0}
+.body{flex:1;min-width:0}
+.title{font-weight:600;font-size:15.5px;overflow-wrap:anywhere;cursor:text}
+.task.done .title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--muted)}
+.edit{width:100%;padding:6px 10px;border-radius:8px;border:1px solid var(--accent);background:var(--surface-2);font-size:15.5px;font-weight:600}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.chip.overdue{color:var(--danger);border-color:var(--danger);background:transparent}
+.del{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--muted);opacity:0;transition:all .15s}
+.task:hover .del,.del:focus-visible{opacity:1}
+.del:hover{background:var(--surface-2);color:var(--danger)}
+.del svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:none){.del{opacity:1}}
+
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty h3{color:var(--ink);font-size:18px;margin-bottom:6px;font-weight:700}
+.foot{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13.5px;font-weight:500;padding:0 4px}
+.link{color:var(--muted);font-weight:600;font-size:13.5px;padding:6px 10px;border-radius:8px}
+.link:hover{color:var(--danger);background:var(--surface-2)}
+@media (max-width:560px){
+  .progress{flex-wrap:wrap}.stats{margin-left:0;width:100%}
+  .add-row{flex-direction:column}.btn-primary{padding:13px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1 id="greeting">Your tasks</h1>
+      <p class="date" id="today"></p>
+    </div>
+    <button class="icon-btn" id="theme" aria-label="Switch theme" title="Switch theme">
+      <svg viewBox="0 0 24 24" id="themeIcon"></svg>
+    </button>
+  </header>
+
+  <section class="card progress" aria-label="Progress">
+    <div class="ring" id="ring"><span id="pct">0%</span></div>
+    <div>
+      <h2 id="pTitle">Nothing planned yet</h2>
+      <p id="pSub">Add your first task below.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sOpen">0</b><small>Open</small></div>
+      <div class="stat"><b id="sDone">0</b><small>Done</small></div>
+    </div>
+  </section>
+
+  <section class="card add" aria-label="Add a task">
+    <div class="add-row">
+      <input type="text" id="input" placeholder="What needs to get done?" maxlength="140" autocomplete="off" aria-label="Task name">
+      <button class="btn-primary" id="addBtn">Add task</button>
+    </div>
+    <div class="opts">
+      <select id="prio" aria-label="Priority">
+        <option value="high">High priority</option>
+        <option value="medium" selected>Medium priority</option>
+        <option value="low">Low priority</option>
+      </select>
+      <select id="cat" aria-label="Category">
+        <option>Personal</option><option>Work</option><option>Health</option><option>Learning</option><option>Home</option>
+      </select>
+      <input type="date" id="due" aria-label="Due date">
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="tabs" role="group" aria-label="Filter">
+      <button class="tab" data-f="all" aria-pressed="true">All</button>
+      <button class="tab" data-f="active" aria-pressed="false">Open</button>
+      <button class="tab" data-f="done" aria-pressed="false">Done</button>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="search" id="q" placeholder="Search tasks" aria-label="Search tasks">
+    </label>
+  </div>
+
+  <ul id="list" aria-live="polite"></ul>
+
+  <div class="foot">
+    <span id="count"></span>
+    <button class="link" id="clear">Clear completed</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const KEY = "tasks.v1", THEME = "tasks.theme";
+  let tasks = [], filter = "all", query = "", newId = null;
+
+  // storage (guarded: may be unavailable in some contexts)
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null } catch { return null } };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(tasks)) } catch {} };
+
+  const today = () => new Date().toISOString().slice(0, 10);
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  tasks = load() || [
+    { id: uid(), text: "Plan the week ahead", prio: "high", cat: "Work", due: today(), done: false },
+    { id: uid(), text: "Go for a 30-minute walk", prio: "low", cat: "Health", due: "", done: false },
+    { id: uid(), text: "Try the double-click to edit trick", prio: "medium", cat: "Personal", due: "", done: true },
+  ];
+
+  // header
+  const h = new Date().getHours();
+  $("#greeting").textContent = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  $("#today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+  // theme
+  const icons = {
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+  };
+  function setTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $("#themeIcon").innerHTML = t === "dark" ? icons.sun : icons.moon;
+    try { localStorage.setItem(THEME, t) } catch {}
+  }
+  let saved = null; try { saved = localStorage.getItem(THEME) } catch {}
+  setTheme(saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  $("#theme").onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+
+  // actions
+  function add() {
+    const text = $("#input").value.trim();
+    if (!text) { $("#input").focus(); return; }
+    const t = { id: uid(), text, prio: $("#prio").value, cat: $("#cat").value, due: $("#due").value, done: false };
+    tasks.unshift(t); newId = t.id;
+    $("#input").value = ""; $("#due").value = ""; $("#input").focus();
+    commit();
+  }
+  const commit = () => { save(); render(); };
+
+  $("#addBtn").onclick = add;
+  $("#input").addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  $("#q").addEventListener("input", e => { query = e.target.value.toLowerCase(); render(); });
+  $("#clear").onclick = () => { tasks = tasks.filter(t => !t.done); commit(); };
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+    filter = b.dataset.f;
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-pressed", x === b));
+    render();
+  });
+
+  $("#list").addEventListener("click", e => {
+    const li = e.target.closest(".task"); if (!li) return;
+    const t = tasks.find(x => x.id === li.dataset.id);
+    if (e.target.closest(".check")) { t.done = !t.done; commit(); }
+    else if (e.target.closest(".del")) { tasks = tasks.filter(x => x !== t); commit(); }
+  });
+  $("#list").addEventListener("dblclick", e => {
+    const title = e.target.closest(".title"); if (!title) return;
+    const t = tasks.find(x => x.id === title.closest(".task").dataset.id);
+    const inp = document.createElement("input");
+    inp.className = "edit"; inp.value = t.text; inp.maxLength = 140; inp.setAttribute("aria-label", "Edit task");
+    title.replaceWith(inp); inp.focus(); inp.select();
+    const finish = ok => { const v = inp.value.trim(); if (ok && v) t.text = v; commit(); };
+    inp.onblur = () => finish(true);
+    inp.onkeydown = ev => { if (ev.key === "Enter") finish(true); if (ev.key === "Escape") { inp.onblur = null; finish(false); } };
+  });
+
+  // render
+  function render() {
+    const total = tasks.length, done = tasks.filter(t => t.done).length, open = total - done;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    $("#ring").style.setProperty("--p", pct); $("#pct").textContent = pct + "%";
+    $("#sOpen").textContent = open; $("#sDone").textContent = done;
+    $("#pTitle").textContent = !total ? "Nothing planned yet" : open === 0 ? "All done. Nice work." : `${open} ${open === 1 ? "task" : "tasks"} to go`;
+    $("#pSub").textContent = !total ? "Add your first task below." : `You’ve completed ${done} of ${total}.`;
+
+    const order = { high: 0, medium: 1, low: 2 };
+    const list = tasks
+      .filter(t => filter === "all" || (filter === "done" ? t.done : !t.done))
+      .filter(t => !query || (t.text + " " + t.cat).toLowerCase().includes(query))
+      .sort((a, b) => a.done - b.done || order[a.prio] - order[b.prio]);
+
+    $("#list").innerHTML = list.length ? list.map(t => {
+      const overdue = t.due && !t.done && t.due < today();
+      const due = t.due ? new Date(t.due + "T00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+      return `<li class="task${t.done ? " done" : ""}${t.id === newId ? " new" : ""}" data-id="${t.id}" data-p="${t.prio}">
+        <button class="check" aria-label="${t.done ? "Mark as open" : "Mark as done"}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+        <div class="body">
+          <div class="title" title="Double-click to edit">${esc(t.text)}</div>
+          <div class="meta"><span class="chip">${esc(t.cat)}</span><span class="chip">${t.prio[0].toUpperCase() + t.prio.slice(1)}</span>${due ? `<span class="chip${overdue ? " overdue" : ""}">${overdue ? "Overdue: " : "Due "}${due}</span>` : ""}</div>
+        </div>
+        <button class="del" aria-label="Delete task"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
+      </li>`;
+    }).join("") : `<li class="card empty"><h3>${total ? "No matching tasks" : "Your list is empty"}</h3><p>${total ? "Try a different filter or search." : "Type a task above and press Enter."}</p></li>`;
+    newId = null;
+
+    $("#count").textContent = `${list.length} shown`;
+    $("#clear").style.visibility = done ? "visible" : "hidden";
+  }
+  render();
+})();
+</script>
+</body>
+</html>
